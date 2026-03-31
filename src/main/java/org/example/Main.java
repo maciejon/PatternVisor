@@ -3,19 +3,15 @@ import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.*;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.List;
 
 public class Main {
-    public static void main(String[] args) {
-        // najprostszy kod do testu
-        String code = "public class singleton { \n" +
-                "    private singleton() {} \n" +
-//                "   public singleton() {}\n" +
-                "   private static int instancja;" +
-                "   public static String getInstance(){}" +
-                "}";
+    public static void main(String[] args) throws FileNotFoundException {
 
-        CompilationUnit cu = StaticJavaParser.parse(code);
+//        CompilationUnit cu = StaticJavaParser.parse(new File("src/main/java/org/example/test_files/SingletonSimplest.java"));
+        CompilationUnit cu = StaticJavaParser.parse(new File("src/main/java/org/example/test_files/SingletonWithHolder.java"));
 
         cu.findAll(ClassOrInterfaceDeclaration.class).forEach(analyzedClass -> {
             System.out.println("Analizuję klasę: " + analyzedClass.getNameAsString());
