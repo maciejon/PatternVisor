@@ -1,5 +1,6 @@
 package org.example.test_files;
 
+//tzw bill pugh singleton
 public class SingletonWithHolder {
     private SingletonWithHolder() {}
 

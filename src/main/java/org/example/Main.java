@@ -11,7 +11,8 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException {
 
 //        CompilationUnit cu = StaticJavaParser.parse(new File("src/main/java/org/example/test_files/SingletonSimplest.java"));
-        CompilationUnit cu = StaticJavaParser.parse(new File("src/main/java/org/example/test_files/SingletonWithHolder.java"));
+//        CompilationUnit cu = StaticJavaParser.parse(new File("src/main/java/org/example/test_files/SingletonWithHolder.java"));
+        CompilationUnit cu = StaticJavaParser.parse(new File("src/main/java/org/example/test_files/SingletonWrongPublicConstructor.java"));
 
         cu.findAll(ClassOrInterfaceDeclaration.class).forEach(analyzedClass -> {
             System.out.println("Analizuję klasę: " + analyzedClass.getNameAsString());
@@ -47,7 +48,8 @@ public class Main {
 
             // ------------------- WARUNEK NR.2 - przechowuje Instance typu siebie -------------------
             boolean warunek_2 = false;
-            for (FieldDeclaration field : analyzedClass.getFields()){
+            //                                          tutaj findAll zamiast getFields() pozwala znaleźć również pola w klasach zagnieżdżonych
+            for (FieldDeclaration field : analyzedClass.findAll(FieldDeclaration.class)){
                 if (field.isStatic() && field.isPrivate()){
                     for (VariableDeclarator variable : field.getVariables()){ // w jednym polu może być kilka zmiennych np. int x, y;
                         if(variable.getTypeAsString().equals(analyzedClass.getNameAsString())){
