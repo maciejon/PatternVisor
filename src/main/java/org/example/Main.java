@@ -25,7 +25,6 @@ public class Main {
 
             if (constructors.isEmpty() ){
                 System.out.println("Nie ma konstruktora, to nie singleton.");
-                warunek_1 = false;
             }
             for (ConstructorDeclaration constructor : constructors){
                 if (!constructor.isPrivate()){
