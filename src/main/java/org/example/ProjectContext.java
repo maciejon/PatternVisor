@@ -19,7 +19,6 @@ import java.util.Map;
 
 public class ProjectContext {
     private List<CompilationUnit> allCompilationUnits = new ArrayList<CompilationUnit>();
-//    private List<ClassOrInterfaceDeclaration> allClasses = new ArrayList<ClassOrInterfaceDeclaration>();
     private Map<String, ClassOrInterfaceDeclaration> allClasses = new HashMap<>();
 
     public ProjectContext(String sourcePath){ //path to the analyzed project
@@ -44,7 +43,6 @@ public class ProjectContext {
             System.out.println("Directory doesnt exist or is not a directory.");
             return;
         }
-
         processDirectory(root);
     }
 
@@ -66,9 +64,8 @@ public class ProjectContext {
             CompilationUnit cu = StaticJavaParser.parse(filePath);
             allCompilationUnits.add(cu);
 
-//            allClasses.addAll(cu.findAll(ClassOrInterfaceDeclaration.class));
             cu.findAll(ClassOrInterfaceDeclaration.class).forEach(c ->
-                    allClasses.put(c.getNameAsString(),c));
+                    allClasses.put(c.getNameAsString(),c)); //nazwa to może być mało
 
         } catch (IOException e) {
             System.err.println("Błąd parsowania: " + filePath);

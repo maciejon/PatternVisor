@@ -10,9 +10,10 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) throws FileNotFoundException {
 
-//        CompilationUnit cu = StaticJavaParser.parse(new File("src/main/java/org/example/test_files/SingletonSimplest.java"));
-//        CompilationUnit cu = StaticJavaParser.parse(new File("src/main/java/org/example/test_files/SingletonWithHolder.java"));
-        CompilationUnit cu = StaticJavaParser.parse(new File("src/main/java/org/example/test_files/SingletonWrongPublicConstructor.java"));
+
+        ProjectContext context = new ProjectContext("src/test_files/symbolSolverTest");
+
+        CompilationUnit cu = StaticJavaParser.parse(new File("src/test_files/SingletonWrongPublicConstructor.java"));
 
         cu.findAll(ClassOrInterfaceDeclaration.class).forEach(analyzedClass -> {
             System.out.println("Analizuję klasę: " + analyzedClass.getNameAsString());
