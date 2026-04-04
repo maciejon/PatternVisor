@@ -21,6 +21,10 @@ public class ProjectContext {
     private List<CompilationUnit> allCompilationUnits = new ArrayList<CompilationUnit>();
     private Map<String, ClassOrInterfaceDeclaration> allClasses = new HashMap<>();
 
+    public Map<String, ClassOrInterfaceDeclaration> getAllClasses(){
+        return allClasses;
+    }
+
     public ProjectContext(String sourcePath){ //path to the analyzed project
         configureSymbolSolver(sourcePath);
         loadFiles(sourcePath);
