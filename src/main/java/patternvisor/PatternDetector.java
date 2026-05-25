@@ -1,4 +1,4 @@
-package org.example;
+package patternvisor;
 
 public interface PatternDetector {
     //do zmiany z voida, dorobic jakąś klasę do zwracania struktur wzorców

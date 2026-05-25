@@ -1,4 +1,4 @@
-package org.example;
+package patternvisor;
 
 import com.github.javaparser.ast.body.*;
 
