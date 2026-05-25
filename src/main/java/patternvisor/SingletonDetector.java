@@ -1,23 +1,14 @@
-package org.example;
-import com.github.javaparser.StaticJavaParser;
-import com.github.javaparser.ast.CompilationUnit;
+package patternvisor;
+
 import com.github.javaparser.ast.body.*;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.List;
 
-public class Main {
-    public static void main(String[] args) throws FileNotFoundException {
-
-//        CompilationUnit cu = StaticJavaParser.parse(new File("src/main/java/org/example/test_files/SingletonSimplest.java"));
-//        CompilationUnit cu = StaticJavaParser.parse(new File("src/main/java/org/example/test_files/SingletonWithHolder.java"));
-        CompilationUnit cu = StaticJavaParser.parse(new File("src/main/java/org/example/test_files/SingletonWrongPublicConstructor.java"));
-
-        cu.findAll(ClassOrInterfaceDeclaration.class).forEach(analyzedClass -> {
+public class SingletonDetector implements PatternDetector{
+    @Override
+    public void findPatterns(ProjectContext context) {
+        context.getAllClasses().values().forEach(analyzedClass -> {
             System.out.println("Analizuję klasę: " + analyzedClass.getNameAsString());
-
-            // --------------------------- SZUKANIE SINGLETONA ---------------------------
 
             // ------------------- WARUNEK NR.1 - prywatny konstruktor -------------------
             boolean warunek_1 = false;
@@ -88,5 +79,10 @@ public class Main {
                 System.out.println("Nie znaleziono singletona!");
             }
         });
+    }
+
+    @Override
+    public String getPatternName() {
+        return "Singleton";
     }
 }
