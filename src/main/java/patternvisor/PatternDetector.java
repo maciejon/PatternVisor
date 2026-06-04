@@ -1,7 +1,7 @@
 package patternvisor;
 
 public interface PatternDetector {
-    //do zmiany z voida, dorobic jakąś klasę do zwracania struktur wzorców
-    public void findPatterns(ProjectContext context);
+    //pewnie do zmiany z boola, dorobic jakąś klasę do zwracania struktur wzorców?
+    public boolean findPatterns(ProjectContext context);
     public String getPatternName();
 }
