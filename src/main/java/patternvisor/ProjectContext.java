@@ -69,7 +69,7 @@ public class ProjectContext {
             allCompilationUnits.add(cu);
 
             cu.findAll(ClassOrInterfaceDeclaration.class).forEach(c ->
-                    allClasses.put(c.getNameAsString(),c)); //nazwa to może być mało
+                    allClasses.put(UtilityFunctions.getQualifiedName(c),c));
 
         } catch (IOException e) {
             System.err.println("Błąd parsowania: " + filePath);
