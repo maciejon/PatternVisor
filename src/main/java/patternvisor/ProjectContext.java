@@ -1,6 +1,7 @@
 package patternvisor;
 
 import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 
@@ -38,7 +39,9 @@ public class ProjectContext {
         combinedTypeSolver.add(new JavaParserTypeSolver(new File(sourcePath)));
 
         JavaSymbolSolver symbolSolver = new JavaSymbolSolver(combinedTypeSolver);
-        StaticJavaParser.getConfiguration().setSymbolResolver(symbolSolver);
+        StaticJavaParser.getConfiguration()
+                .setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17)
+                .setSymbolResolver(symbolSolver);
     }
 
     private void loadFiles(String sourcePath){
@@ -69,7 +72,7 @@ public class ProjectContext {
             allCompilationUnits.add(cu);
 
             cu.findAll(ClassOrInterfaceDeclaration.class).forEach(c ->
-                    allClasses.put(c.getNameAsString(),c)); //nazwa to może być mało
+                    allClasses.put(UtilityFunctions.getQualifiedName(c),c));
 
         } catch (IOException e) {
             System.err.println("Błąd parsowania: " + filePath);

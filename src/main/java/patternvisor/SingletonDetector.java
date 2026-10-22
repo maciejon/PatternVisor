@@ -1,82 +1,90 @@
 package patternvisor;
 
-import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.ConstructorDeclaration;
+import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
-public class SingletonDetector implements PatternDetector{
+public class SingletonDetector implements PatternDetector {
     @Override
-    public boolean findPatterns(ProjectContext context) {
-        for (var analyzedClass : context.getAllClasses().values()) {
-//        context.getAllClasses().values().forEach(analyzedClass -> {
-            System.out.println("Analizuję klasę: " + analyzedClass.getNameAsString());
+    public AnalysisResult findPatterns(ProjectContext context) {
+        List<PatternFinding> findings = new ArrayList<>();
 
-            // ------------------- WARUNEK NR.1 - prywatny konstruktor -------------------
-            boolean warunek_1 = false;
-            List<ConstructorDeclaration> constructors = analyzedClass.findAll(ConstructorDeclaration.class);
+        for (ClassOrInterfaceDeclaration analyzedClass : context.getAllClasses().values()) {
 
-            if (constructors.isEmpty()) {
-                System.out.println("Nie ma konstruktora, to nie singleton.");
+            List<String> evidence = new ArrayList<>();
+            if (hasOnlyPrivateConstructors(analyzedClass)) {
+                evidence.add("All explicitly declared constructors are private.");
             }
-            for (ConstructorDeclaration constructor : constructors) {
-                if (!constructor.isPrivate()) {
-                    System.out.println("Nieprywatny konstruktor! To nie singleton.");
-                    warunek_1 = false;
-                    break;
-                } else {
-                    System.out.println("Jest prywatny konstruktor. To może być singleton.");
-                    warunek_1 = true;
+            if (hasPrivateStaticSelfField(analyzedClass)) {
+                evidence.add("A private static field has the same type as this class.");
+            }
+            if (hasPublicStaticSelfFactory(analyzedClass)) {
+                evidence.add("A public static method returns this class.");
+            }
+
+            if (evidence.size() == 3) {
+                findings.add(new PatternFinding(
+                        getPatternName(),
+                        UtilityFunctions.getQualifiedName(analyzedClass),
+                        getSourceFile(analyzedClass),
+                        getStartLine(analyzedClass),
+                        evidence
+                ));
+            }
+        }
+
+        return new AnalysisResult(findings);
+    }
+
+    private boolean hasOnlyPrivateConstructors(ClassOrInterfaceDeclaration analyzedClass) {
+        List<ConstructorDeclaration> constructors = analyzedClass.getConstructors();
+        return !constructors.isEmpty() && constructors.stream().allMatch(ConstructorDeclaration::isPrivate);
+    }
+
+    private boolean hasPrivateStaticSelfField(ClassOrInterfaceDeclaration analyzedClass) {
+        for (FieldDeclaration field : analyzedClass.findAll(FieldDeclaration.class)) {
+            if (!field.isStatic() || !field.isPrivate()) {
+                continue;
+            }
+
+            for (VariableDeclarator variable : field.getVariables()) {
+                if (variable.getTypeAsString().equals(analyzedClass.getNameAsString())) {
+                    return true;
                 }
-            }
-            if (warunek_1) {
-                System.out.println("Warunek nr.1 spełniony.");
-            } else {
-                System.out.println("Warunek nr.1 nie spełniony.");
-            }
-
-            // ------------------- WARUNEK NR.2 - przechowuje Instance typu siebie -------------------
-            boolean warunek_2 = false;
-            //                                          tutaj findAll zamiast getFields() pozwala znaleźć również pola w klasach zagnieżdżonych
-            for (FieldDeclaration field : analyzedClass.findAll(FieldDeclaration.class)) {
-                if (field.isStatic() && field.isPrivate()) {
-                    for (VariableDeclarator variable : field.getVariables()) { // w jednym polu może być kilka zmiennych np. int x, y;
-                        if (variable.getTypeAsString().equals(analyzedClass.getNameAsString())) {
-                            warunek_2 = true;
-                            System.out.println("Znaleziono prywatną statyczną zmienną o typie takim samym jak nazwa klasy.");
-                        }
-                    }
-                }
-            }
-            if (warunek_2) {
-                System.out.println("Warunek nr.2 spełniony.");
-            } else {
-                System.out.println("Warunek nr.2 nie spełniony.");
-            }
-
-            // ------------------- WARUNEK NR.3 - metoda statyczna zwracająca instancję -------------------
-            boolean warunek_3 = false;
-            for (MethodDeclaration method : analyzedClass.getMethods()) {
-                if (method.isPublic() && method.isStatic() && method.getTypeAsString().equals(analyzedClass.getNameAsString())) {
-                    warunek_3 = true;
-                    // dołożyć sprawdzanie co się dzieje w środku metody?
-                    System.out.println("Znaleziono statyczną publiczną metodę, która zwraca typ taki jak jest klasa.");
-                }
-            }
-            if (warunek_3) {
-                System.out.println("Warunek nr.3 spełniony.");
-            } else {
-                System.out.println("Warunek nr.3 nie spełniony.");
-            }
-
-            if (warunek_1 && warunek_2 && warunek_3) {
-                System.out.println("Mamy singletona!");
-                return true;
-            } else {
-                System.out.println("Nie znaleziono singletona!");
-                return false;
             }
         }
         return false;
+    }
+
+    private boolean hasPublicStaticSelfFactory(ClassOrInterfaceDeclaration analyzedClass) {
+        for (MethodDeclaration method : analyzedClass.getMethods()) {
+            if (method.isPublic()
+                    && method.isStatic()
+                    && method.getTypeAsString().equals(analyzedClass.getNameAsString())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Path getSourceFile(ClassOrInterfaceDeclaration analyzedClass) {
+        return analyzedClass.findCompilationUnit()
+                .flatMap(CompilationUnit::getStorage)
+                .map(CompilationUnit.Storage::getPath)
+                .orElse(null);
+    }
+
+    private int getStartLine(ClassOrInterfaceDeclaration analyzedClass) {
+        return analyzedClass.getName().getRange()
+                .map(range -> range.begin.line)
+                .orElse(0);
     }
 
     @Override
